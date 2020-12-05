@@ -122,18 +122,20 @@ function exportTableToFile (filename, filetype, data)
 
     for key,value in pairs(data) do
         -- print(key, value)
-        io.write(tostring(key) .. ": " .. tostring(value) .. ",")
+        io.write(tostring(key) .. " " .. tostring(value) .. ",")
     end
 
     io.close(file)
 end
 
 
+-- checks if computer is connected to reactor. stops script if not
 if reactor == nil then 
     
     print("Not Connected to Reactor, Exiting program.")
     connected = false
 
+-- if the computer reactor wrap returns anything other then "nil" it is connected and the main script is ran
 else
 
     print("seting all control rods to 0 insertion")
@@ -165,8 +167,7 @@ else
         exportTableToFile("dataset", "csv", dataset)
 
     end
-
-    reactor.setActive(false)
-    print("reactor stopped.")
-
 end
+
+reactor.setActive(false)
+print("script stopped.")
