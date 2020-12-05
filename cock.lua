@@ -1,19 +1,29 @@
-local reactor = peripheral.wrap("back")
+local reactor, EnergyProducedSeconds, PowerDeccel, PowerCurrent, PowerCount
+local BufferLoad, Produced, BufferLoadOne, BufferLoadTwo
 
-local function EnergyProducedSeconds()
-     local BufferLoad, Produced, BufferLoadOne, BufferLoadTwo
+reactor = peripheral.wrap("back")
+PowerCurrent = reactor.getEnergyProducedLastTick()
+PowerCount = 0
+
+function EnergyProducedSeconds()
      Produced = reactor.getEnergyProducedLastTick()
      BufferLoadOne = reactor.getEnergyStored()
    
     function BufferLoadTwo()
         reactor.setActive(false)
-        sleep(10)
+        sleep(11)
         BufferLoadTwo = reactor.getEnergyStored()
         reactor.setActive(true)
         return BufferLoadTwo
     end
+   function PowerDeccel() 
+        while(true) do 
+        if PowerCurrent > 0 then 
+            PowerCount + 1
     
-    BufferLoad = (BufferLoadOne - BufferLoadTwo()) / 10 / 20
+    end
+    
+    BufferLoad = (BufferLoadOne - BufferLoadTwo())
     EnergyProducedSeconds = Produced - BufferLoad
     sleep(1)
     return EnergyProducedSeconds
