@@ -5,7 +5,7 @@ PowerCurrent = reactor.getEnergyProducedLastTick()
 function PowerCount ()
     reactor.setActive(false)
     while PowerCurrent > 0 do
-            PowerCount = PowerCount + 1
+            PowerCount() = PowerCount + 1
             sleep(1)
         return PowerCount
     end
