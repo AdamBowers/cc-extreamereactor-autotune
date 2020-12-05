@@ -1,8 +1,10 @@
+-- declaring local variables which are really just working as global variables but fuck off.
 local reactor = peripheral.wrap("back")
 local reactorBufferSize, reactorBufferTarget, reactorControlRodLvl, reactorBufferStore
 local timeout, connected, energyProducedLastTick_, terminateScript, energyProductionTarget
-local insufficientPowerProductionCount, load
+local insufficientPowerProductionCount, load, dataset
 
+-- default values to some common variables
 reactorBufferSize = 10000000
 reactorBufferTarget = 9900000
 reactorBufferTargetTolerance = 0.001
@@ -14,6 +16,7 @@ insufficientPowerProductionCount = 0
 
 connected = true
 
+-- generic function used to capture an set a value of a variable to completely termiate the script, or just event loop if so desired
 function captureTerminationKey (key_)
     timeout = os.startTimer(0.1)
     local event, key = os.pullEvent() -- catches all pullEvents
@@ -24,6 +27,7 @@ function captureTerminationKey (key_)
     end
 end
 
+-- holds the event loop until the buffer has charged to a target capacity
 function chargebufferToTarget ()
     while(reactor.getEnergyStored() < reactorBufferTarget) do
         captureTerminationKey("x")
@@ -54,6 +58,7 @@ function chargebufferToTarget ()
     end
 end
 
+-- calculates the load on the reactor by comparing the buffer value at two different points of time
 function energyLoad ()
     local energyStored1, energyStored2, load
     reactor.setActive(false)
@@ -80,7 +85,48 @@ function energyLoad ()
     return load
 end
 
+-- uses sampling of energy produced to determin a formula for the power production decay curve.
 function decayCurve ()
+    local dataset_, iteration
+    dataset_ = {}
+    iteration = 0
+    
+    reactor.setActive(false)
+    
+    while reactor.getEnergyProducedLastTick() > 0 do
+        captureTerminationKey("x")
+        if terminateScript == 1 then
+            break
+        end
+        
+        dataset_[iteration] = reactor.getEnergyProducedLastTick()
+
+        iteration = iteration + 1
+
+        os.sleep(0.2)
+
+    end
+    
+    reactor.setActive(true)
+    
+    return dataset_
+
+end
+
+-- as the name implies it is used to export a table of values to document
+function exportTableToFile (filename, filetype, data)
+    file = io.open("scripts/cc-extreamereactor-autotune/"..filename.."."..filetype, "a+")
+
+    io.input(file)
+    io.output(file)
+
+    for key,value in pairs(data) do
+        -- print(key, value)
+        io.write(tostring(key) .. ": " .. tostring(value) .. ",")
+    end
+
+    io.close(file)
+end
 
 
 if reactor == nil then 
@@ -97,7 +143,7 @@ else
         reactor.setActive(true)
     end
 
-
+    -- main loop
     while(connected) do
         
         captureTerminationKey("x")
@@ -110,11 +156,13 @@ else
         print("buffer target reached")
         
 
-        load = energyLoad()
-        print(load)
+        -- load = energyLoad()
+        -- print(load)
 
-        print("letting reactor build back to buffer target")
-        os.sleep(5)
+        -- print("letting reactor build back to buffer target")
+        -- os.sleep(5)
+        dataset = decayCurve()
+        exportTableToFile("dataset", "csv", dataset)
 
     end
 
@@ -122,7 +170,3 @@ else
     print("reactor stopped.")
 
 end
-
-
-
-
