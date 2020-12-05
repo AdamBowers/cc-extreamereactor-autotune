@@ -1,18 +1,14 @@
 local reactor, PowerCurrent, PowerCount
 reactor = peripheral.wrap("back")
 PowerCurrent = reactor.getEnergyProducedLastTick()
-local PowerC = 0
 
-function PowerCount(PowerC)
-    
-    while true do
-        if PowerCurrent > 0 then
-            PowerC = PowerC + 1
-        elseif PowerCurrent == 0 then
-            
-        return PowerC
-        end
+function PowerCount()
+    reactor.setActive(false)
+    while PowerCurrent > 0 do
+            PowerCount() = PowerCount + 1
+            sleep(1)
+        return PowerCount
     end
-end    
-    sleep(1)
+end
+sleep(1)   
 print(PowerCount())
