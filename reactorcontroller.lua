@@ -2,7 +2,7 @@
 local reactor = peripheral.wrap("back")
 local reactorBufferSize, reactorBufferTarget, reactorControlRodLvl, reactorBufferStore
 local timeout, connected, energyProducedLastTick_, terminateScript, energyProductionTarget
-local insufficientPowerProductionCount, load
+local insufficientPowerProductionCount, load, dataset
 
 -- default values to some common variables
 reactorBufferSize = 10000000
@@ -85,8 +85,47 @@ function energyLoad ()
     return load
 end
 
+-- uses sampling of energy produced to determin a formula for the power production decay curve.
 function decayCurve ()
-    print("fuck you cunt!")
+    local dataset_, iteration
+    dataset_ = {}
+    iteration = 0
+    
+    reactor.setActive(false)
+    
+    while reactor.getEnergyProducedLastTick() > 0 do
+        captureTerminationKey("x")
+        if terminateScript == 1 then
+            break
+        end
+        
+        dataset_[iteration] = reactor.getEnergyProducedLastTick()
+
+        iteration = iteration + 1
+
+        os.sleep(0.2)
+
+    end
+    
+    reactor.setActive(true)
+    
+    return dataset_
+
+end
+
+-- as the name implies it is used to export a table of values to document
+function exportTableToFile (filename, filetype, data)
+    file = io.open("scripts/cc-extreamereactor-autotune/"..filename.."."..filetype, "a+")
+
+    io.input(file)
+    io.output(file)
+
+    for key,value in pairs(data) do
+        -- print(key, value)
+        io.write(tostring(key) .. ": " .. tostring(value) .. ",")
+    end
+
+    io.close(file)
 end
 
 
@@ -117,11 +156,13 @@ else
         print("buffer target reached")
         
 
-        load = energyLoad()
-        print(load)
+        -- load = energyLoad()
+        -- print(load)
 
-        print("letting reactor build back to buffer target")
-        os.sleep(5)
+        -- print("letting reactor build back to buffer target")
+        -- os.sleep(5)
+        dataset = decayCurve()
+        exportTableToFile("dataset", "csv", dataset)
 
     end
 
@@ -129,7 +170,3 @@ else
     print("reactor stopped.")
 
 end
-
-
-
-
