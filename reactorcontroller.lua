@@ -1,8 +1,10 @@
+-- declaring local variables which are really just working as global variables but fuck off.
 local reactor = peripheral.wrap("back")
 local reactorBufferSize, reactorBufferTarget, reactorControlRodLvl, reactorBufferStore
 local timeout, connected, energyProducedLastTick_, terminateScript, energyProductionTarget
 local insufficientPowerProductionCount, load
 
+-- default values to some common variables
 reactorBufferSize = 10000000
 reactorBufferTarget = 9900000
 reactorBufferTargetTolerance = 0.001
@@ -14,6 +16,7 @@ insufficientPowerProductionCount = 0
 
 connected = true
 
+-- generic function used to capture an set a value of a variable to completely termiate the script, or just event loop if so desired
 function captureTerminationKey (key_)
     timeout = os.startTimer(0.1)
     local event, key = os.pullEvent() -- catches all pullEvents
@@ -24,6 +27,7 @@ function captureTerminationKey (key_)
     end
 end
 
+-- holds the event loop until the buffer has charged to a target capacity
 function chargebufferToTarget ()
     while(reactor.getEnergyStored() < reactorBufferTarget) do
         captureTerminationKey("x")
@@ -54,6 +58,7 @@ function chargebufferToTarget ()
     end
 end
 
+-- calculates the load on the reactor by comparing the buffer value at two different points of time
 function energyLoad ()
     local energyStored1, energyStored2, load
     reactor.setActive(false)
@@ -81,6 +86,8 @@ function energyLoad ()
 end
 
 function decayCurve ()
+    print("fuck you cunt!")
+end
 
 
 if reactor == nil then 
@@ -97,7 +104,7 @@ else
         reactor.setActive(true)
     end
 
-
+    -- main loop
     while(connected) do
         
         captureTerminationKey("x")
