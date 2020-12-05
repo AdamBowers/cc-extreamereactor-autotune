@@ -5,16 +5,15 @@ local timeout, connected, energyProducedLastTick_, terminateScript, energyProduc
 local insufficientPowerProductionCount, load, dataset
 
 -- default values to some common variables
-reactorBufferSize = 10000000
-reactorBufferTarget = 9900000
-reactorBufferTargetTolerance = 0.001
-ControlRodLvl = 0
-energyProducedLastTick_ = 0
-terminateScript = 0
-energyProductionTarget = math.pow(2, 20)
-insufficientPowerProductionCount = 0
+reactorBufferSize = 10000000    -- mostly useless, but its a good reminder of the max buffer size
+reactorBufferTarget = 9900000   -- the target bafore value, used by chargeBufferToTarget function to specify the threshold required befor the event block can end
+ControlRodLvl = 0   -- default starting level of the control rod. gets altered to keep track of the control rod insertion
+energyProducedLastTick_ = 0  -- keeps track of the energy being produced per game tic (1s/20)
+terminateScript = 0  -- a state marker which is checked to see if the event loop should continue to run. 0 = keep going, 1 = stop dickhead.
+energyProductionTarget = math.pow(2, 20)  -- arbitrary large number. this will get ultered to be the same as the load when that is computed
+insufficientPowerProductionCount = 0  -- just a counter keep track of how many times insufficient power has been produced in during the operation of the script. if its = to 5 then stop the script. your reactor isn't powerful enough
 
-connected = true
+connected = true  -- i dont even know
 
 -- generic function used to capture an set a value of a variable to completely termiate the script, or just event loop if so desired
 function captureTerminationKey (key_)
@@ -138,21 +137,27 @@ if reactor == nil then
 -- if the computer reactor wrap returns anything other then "nil" it is connected and the main script is ran
 else
 
+    --[[
+        sets all control rods insertion to the default value of 0. 
+        this gives the reactor the highest chance of the reactor being able to produce enough power for the load
+    --]]
     print("seting all control rods to 0 insertion")
     reactor.setAllControlRodLevels(ControlRodLvl)
 
+    -- checks if the reactor is active, if not it activates it
     if reactor.getActive() == false then
         reactor.setActive(true)
     end
 
     -- main loop
     while(connected) do
-        
+        -- catches escape key to escape the loop, and 
         captureTerminationKey("x")
         if terminateScript == 1 then
             break
         end
 
+        -- charges the buffer to the target buffer value befor any other block can run to ensure their is enough power for any tests
         print("charging buffer")
         chargebufferToTarget()
         print("buffer target reached")
@@ -164,10 +169,10 @@ else
         -- print("letting reactor build back to buffer target")
         -- os.sleep(5)
         dataset = decayCurve()
-        exportTableToFile("dataset", "csv", dataset)
+        exportTableToFile("dataset", "csv", dataset)  -- exports the data collected from the decay curve function to an external csv file. (mostly for human interprutation)
 
     end
 end
 
-reactor.setActive(false)
+reactor.setActive(false) -- deactives reactor as to not waste fuel
 print("script stopped.")
