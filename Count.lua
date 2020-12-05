@@ -12,3 +12,4 @@ function PowerCount ()
 end
 sleep(1)   
 print(PowerCount())
+reactor.setActive(true)
